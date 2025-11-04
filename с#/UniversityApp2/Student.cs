@@ -17,7 +17,6 @@ namespace UniversityApp
             PassedSession = passedSession;
         }
 
-        // Перегрузка оператора ==
         public static bool operator ==(Student s1, Student s2)
         {
             if (ReferenceEquals(s1, s2))
