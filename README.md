@@ -1,13 +1,3 @@
-# C-Sharp 
-
-
-public Monster ShallowClone()
-{
-     Monster copy = new Monster(Health, Mana, Ammo, Name);
-     //copy.Health = this.Health;
-     //copy.Name = this.Name;
-     //copy.Ammo = this.Ammo;
-     //copy.Mana = this.Mana;
-     return copy;
-     // return (Monster)this.MemberwiseClone();
-}
+# C# Projects
+This repository contains a collection of my **C#**  projects completed during my studies at **IT STEP Academy**.
+Each project focuses on a specific aspect of object-oriented programming, algorithms, and software development using **C#**.
