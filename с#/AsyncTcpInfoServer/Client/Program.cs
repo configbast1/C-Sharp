@@ -1,40 +1,55 @@
-using System;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading.Tasks;
 
 class Program
 {
-    static async Task Main()
+    private static UdpClient udpClient = new UdpClient();
+    private static IPEndPoint serverEndpoint = null!;
+
+    static async Task Main(string[] args)
     {
-        Console.OutputEncoding = Encoding.UTF8;
-        Console.InputEncoding = Encoding.UTF8;
+        if (args.Length < 3)
+        {
+            Console.WriteLine("Использование: Client <server_ip> <port> <username>");
+            return;
+        }
 
-        TcpClient client = new TcpClient();
-        await client.ConnectAsync("127.0.0.1", 5000);
+        string serverHost = args[0];
+        int port = int.Parse(args[1]);
+        string username = args[2];
 
-        NetworkStream stream = client.GetStream();
+        var addresses = await Dns.GetHostAddressesAsync(serverHost);
+        serverEndpoint = new IPEndPoint(addresses[0], port);
 
-        Console.WriteLine("Команды:");
-        Console.WriteLine("время");
-        Console.WriteLine("дата");
-        Console.WriteLine("погода Киев");
-        Console.WriteLine("евро");
-        Console.WriteLine("биткоин\n");
+        Console.WriteLine($"Клиент {username} подключен к {serverHost}:{port}");
+        Console.WriteLine("Пишите сообщения:");
+
+        _ = Task.Run(ReceiveMessages);
 
         while (true)
         {
-            Console.Write("Введите: ");
-            string msg = Console.ReadLine();
+            string? input = Console.ReadLine();
+            if (string.IsNullOrWhiteSpace(input)) continue;
 
-            byte[] data = Encoding.UTF8.GetBytes(msg);
-            await stream.WriteAsync(data, 0, data.Length);
+            string fullMessage = $"{username}: {input}";
+            byte[] data = Encoding.UTF8.GetBytes(fullMessage);
 
-            byte[] buffer = new byte[1024];
-            int bytes = await stream.ReadAsync(buffer, 0, buffer.Length);
+            await udpClient.SendAsync(data, data.Length, serverEndpoint);
+        }
+    }
 
-            string response = Encoding.UTF8.GetString(buffer, 0, bytes);
-            Console.WriteLine("Ответ: " + response);
+    private static async Task ReceiveMessages()
+    {
+        while (true)
+        {
+            try
+            {
+                var result = await udpClient.ReceiveAsync();
+                string message = Encoding.UTF8.GetString(result.Buffer);
+                Console.WriteLine(message);
+            }
+            catch { }
         }
     }
 }
